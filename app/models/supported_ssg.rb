@@ -7,6 +7,7 @@ SupportedSsg = Struct.new(:id, :package, :version, :upstream_version, :profiles,
                           :os_major_version, :os_minor_version,
                           keyword_init: true) do
   self::SUPPORTED_FILE = Rails.root.join('config/supported_ssg.yaml')
+  self::OLDEST_UPSTREAM_VERSION = '0.1.24'
 
   class << self
     def all
@@ -24,6 +25,17 @@ SupportedSsg = Struct.new(:id, :package, :version, :upstream_version, :profiles,
 
     def revision
       raw_supported['revision']
+    end
+
+    # Collection of supported SSGs that have ZIP available upstream
+    def available_upstream
+      oldest = self::OLDEST_UPSTREAM_VERSION.split('.')
+      all.select do |ssg|
+        version = (ssg.upstream_version || ssg.version).split('.')
+        version.zip(oldest).all? do |ver_part, oldest_part|
+          ver_part >= oldest_part
+        end
+      end
     end
 
     private
