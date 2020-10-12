@@ -29,9 +29,8 @@ namespace :ssg do
     # DATASTREAM_FILENAMES from openscap_parser's ssg:sync
     begin
       Rails.cache.delete('latest_supported_benchmarks')
-      ENV['DATASTREAMS'] = ::Xccdf::Benchmark::
-        LATEST_SUPPORTED_VERSIONS.map do |ref_id, version|
-        "v#{version}:rhel#{ref_id[/\d+$/]}"
+      ENV['DATASTREAMS'] = ::SupportedSsg.available_upstream.map do |ssg|
+        "v#{ssg.upstream_version || ssg.version}:rhel#{ssg.os_major_version}"
       end.join(',')
       Rake::Task['ssg:sync'].invoke
       DATASTREAM_FILENAMES.flatten.each do |filename|
