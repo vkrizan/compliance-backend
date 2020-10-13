@@ -38,6 +38,13 @@ SupportedSsg = Struct.new(:id, :package, :version, :upstream_version, :profiles,
       end
     end
 
+    # Return true if the object's version attribute or the value
+    # is within supported SSGs
+    def supports?(obj)
+      version = obj.try(:version) || obj
+      all.map(&:version).include?(version)
+    end
+
     private
 
     def map_attributes(values)

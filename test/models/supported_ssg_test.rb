@@ -30,5 +30,22 @@ class SupportedSsgTest < ActiveSupport::TestCase
       assert_includes versions, '0.1.22' # upstream version is higher
       assert_equal in_upstream.count, 3
     end
+
+    should 'respond to object being a supported SSG' do
+      assert SupportedSsg.supports?('0.1.50')
+
+      obj = Struct.new(:version).new('0.1.50')
+      assert SupportedSsg.supports?(obj)
+    end
+
+    should 'respond to object NOT being supported SSG' do
+      assert_not SupportedSsg.supports?('0')
+      assert_not SupportedSsg.supports?('0.0.0')
+      assert_not SupportedSsg.supports?(nil)
+
+      obj = Struct.new(:version).new('0.0.0')
+      assert_not SupportedSsg.supports?(obj)
+      assert_not SupportedSsg.supports?(Struct.new(:version).new)
+    end
   end
 end
