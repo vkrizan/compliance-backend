@@ -4,6 +4,8 @@
 class MissingIdError < StandardError; end
 # Error to raise if the format of the report is wrong
 class WrongFormatError < StandardError; end
+# Error to raise when a report comes from unknown benchmark
+class UnknownBenchmark < StandardError; end
 # Error to raise if the OS version does not match benchmark's
 class OSVersionMismatch < StandardError; end
 
@@ -23,6 +25,7 @@ class XccdfReportParser
     @test_result_file = OpenscapParser::TestResultFile.new(report_contents)
     set_openscap_parser_data
     check_report_format
+    check_benchmark
   end
 
   def check_report_format
@@ -33,6 +36,20 @@ class XccdfReportParser
 
   def valid_message_format?(message)
     message['id'].present?
+  end
+
+  # Check if the benchmark is known or if it is supported
+  def check_benchmark
+    # Checking the benchmark on the supported matrix is to cover cases
+    # for old SSGs not available in upstream, sepecificly on RHEL 6.
+
+    # rubocop:disable Style/GuardClause
+    unless benchmark.persisted? || ::SupportedSsg.supports?(benchmark)
+      raise UnknownBenchmark,
+            "Benchmark #{benchmark.ref_id} versioned #{benchmark.version}" \
+            ' is not known nor supported'
+    end
+    # rubocop:enable Style/GuardClause
   end
 
   def check_os_version
